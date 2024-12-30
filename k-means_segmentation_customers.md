@@ -188,6 +188,7 @@ ggplot(cluster_long, aes(x = "", y = Percentage, fill = Product)) +
     strip.text = element_text(size = 12, face = "bold")
   )
  ```
+![alt text](https://github.com/zzzahwi/k-means_segmentation_customer/blob/main/visualisasi/distribusi_produk_per%20cluster.png?raw=true)
 Grafik ini menunjukkan persentase produk yang dibeli dalam setiap cluster, memberikan wawasan lebih dalam mengenai preferensi pelanggan.
 
 ## **Kesimpulan**
