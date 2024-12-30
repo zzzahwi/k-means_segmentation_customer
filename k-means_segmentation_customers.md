@@ -74,7 +74,7 @@ fviz_cluster(kmeans_result, data = data_scaled, geom = "point", ellipse.type = "
   labs(title = "Visualisasi Cluster dengan PCA")
 ```
 Hasil Visualisasi: Lampirkan grafik cluster di sini.
-
+![alt text]()
 Setiap titik mewakili pelanggan, sementara warna menunjukkan cluster yang ditentukan.
 ________________________________________
 ## **7. Ringkasan Statistik untuk Setiap Cluster**
@@ -87,6 +87,7 @@ summary_per_cluster <- data %>%
 print(summary_per_cluster)
 ```
 Hasil Ringkasan Statistik: Lampirkan tabel ringkasan di sini.
+![alt text]()
 ________________________________________
 ## **8. Distribusi Pembelian Toko dan Web per Cluster**
 Untuk memahami perbedaan pola pembelian, analisis distribusi pembelian di toko dan web dilakukan.
@@ -105,7 +106,7 @@ percentages <- data %>%
 print(percentages)
 ```
 Hasil Visualisasi: Lampirkan pie chart.
-
+![alt text](https://github.com/zzzahwi/k-means_segmentation_customer/blob/main/visualisasi/distribusi_store-web_per%20cluster.png?raw=true)
 Setiap cluster memiliki proporsi pembelian toko dan web yang berbeda, yang mencerminkan preferensi pelanggan.
 ________________________________________
 ## **9. Transformasi Data untuk Visualisasi**
@@ -157,6 +158,8 @@ products <- c("MntWines", "MntFruits", "MntMeatProducts", "MntFishProducts",
               "MntSweetProducts", "MntGoldProds", "Cluster_No_ID")
 data_products <- data[, products]
  ```
+
+![alt text](https://github.com/zzzahwi/k-means_segmentation_customer/blob/main/visualisasi/distribusi_store-web_per%20cluster_3.png?raw=true)
 Data produk yang dibeli disaring, dan hasilnya digunakan untuk menganalisis preferensi produk setiap cluster.
 ________________________________________
 ## **12. Visualisasi Distribusi Produk**
