@@ -1,195 +1,131 @@
-# Instal dan muat library yang diperlukan
+<h1> Segmentasi Pelanggan Menggunakan K-Means Clustering </h1>
+Analisis ini bertujuan untuk mengelompokkan pelanggan berdasarkan pola pembelian mereka menggunakan metode K-Means Clustering. Segmentasi ini membantu perusahaan dalam memahami perilaku pelanggan dan merancang strategi pemasaran yang lebih efektif, seperti promosi yang ditargetkan atau personalisasi layanan.
+
+1. Instalasi dan Muat Library yang Diperlukan
+Langkah pertama adalah memastikan bahwa semua library yang diperlukan telah terinstal dan dimuat.
+
+r
+Copy code
+# Instalasi paket (jika belum terinstal)
+install.packages("ggplot2")
+install.packages("factoextra")
+install.packages("dplyr")
+install.packages("tidyr")
+
+# Muat library
 library(ggplot2)
 library(factoextra)
 library(dplyr)
+library(tidyr)
+Kegunaan Library:
 
-# 1. Baca dataset
+ggplot2: Untuk membuat visualisasi data yang menarik.
+factoextra: Mempermudah visualisasi hasil analisis clustering.
+dplyr: Untuk manipulasi data dengan sintaks sederhana.
+tidyr: Mempermudah pengolahan format data (lebar ke panjang atau sebaliknya).
+2. Membaca Dataset
+Dataset pelanggan dimuat dari clipboard (atau file lain, jika diperlukan).
+
+r
+Copy code
+# Baca dataset dari clipboard
 data <- read.delim("clipboard")
 View(data)
+Catatan: Pastikan data yang disalin memiliki format yang sesuai, dengan kolom dan baris yang terstruktur rapi.
 
-# 2. Hapus kolom ID sebelum analisis clustering
-data_no_id <- data[, !(names(data) %in% c("ID"))]
+3. Pemilihan Kolom Numerik untuk Clustering
+K-Means hanya dapat digunakan pada data numerik, sehingga kita perlu memilih kolom yang relevan.
 
-# 3. Normalisasi data (menggunakan data tanpa ID)
-data_scaled <- scale(data)
+r
+Copy code
+# Pilih hanya kolom numerik untuk clustering
+data_numeric <- data %>% select_if(is.numeric)
+Data numerik meliputi fitur seperti jumlah pembelian di toko, pembelian online, atau pengeluaran total.
 
-# 4. Clustering dengan semua kolom (termasuk data lainnya, kecuali ID)
-kmeans_all <- kmeans(data_scaled, centers = 3, nstart = 25)
-data$Cluster_All <- as.factor(kmeans_all$cluster)
+4. Normalisasi Data
+Langkah normalisasi dilakukan untuk memastikan semua variabel memiliki skala yang sama.
 
-# 5. Pilih hanya kolom numerik untuk clustering (jika sebelumnya belum)
-data_numeric_no_id <- data_no_id[sapply(data_no_id, is.numeric)]
+r
+Copy code
+# Normalisasi data
+data_scaled <- scale(data_numeric)
+Alasan Normalisasi: Variabel dengan skala besar (misalnya, total pembelian) bisa mendominasi variabel lain dalam clustering jika tidak dinormalisasi.
 
-# 6. Normalisasi data
-data_scaled_no_id <- scale(data_numeric_no_id)
+5. Menentukan Jumlah Cluster Optimal
+Metode Elbow digunakan untuk menentukan jumlah cluster yang ideal berdasarkan Within-Cluster Sum of Squares (WSS).
 
-# 7. Lakukan clustering
-kmeans_no_id <- kmeans(data_scaled_no_id, centers = 3, nstart = 25)
-data$Cluster_No_ID <- as.factor(kmeans_no_id$cluster)
+r
+Copy code
+# Tentukan jumlah cluster optimal
+fviz_nbclust(data_scaled, kmeans, method = "wss") +
+  labs(title = "Metode Elbow untuk Menentukan Jumlah Cluster")
+Hasil Visualisasi: Lampirkan grafik Elbow di sini.
 
-# 8. Visualisasi hasil clustering
-pca_no_id <- prcomp(data_scaled_no_id, scale = TRUE)
-fviz_cluster(kmeans_no_id, data = data_scaled_no_id, geom = "point", ellipse.type = "convex",
-             ggtheme = theme_minimal(), main = "Clustering dengan Semua Kolom (Kecuali ID)")
+Interpretasi: Jumlah cluster optimal berada di titik di mana penurunan WSS mulai melambat (titik siku).
 
-# 9. Ringkasan statistik untuk setiap cluster
+6. Melakukan Clustering dengan K-Means
+Setelah jumlah cluster ditentukan, lakukan K-Means clustering.
+
+r
+Copy code
+# Lakukan clustering dengan jumlah cluster yang ditentukan (misalnya 3)
+set.seed(123) # Untuk hasil yang konsisten
+kmeans_result <- kmeans(data_scaled, centers = 3, nstart = 25)
+
+# Tambahkan hasil cluster ke data asli
+data$Cluster <- as.factor(kmeans_result$cluster)
+Catatan: Kolom baru bernama Cluster ditambahkan ke dataset untuk menunjukkan cluster masing-masing pelanggan.
+
+7. Visualisasi Hasil Clustering
+Hasil clustering divisualisasikan dalam ruang 2 dimensi menggunakan PCA (Principal Component Analysis).
+
+r
+Copy code
+# Visualisasi hasil clustering
+fviz_cluster(kmeans_result, data = data_scaled, geom = "point", ellipse.type = "convex") +
+  labs(title = "Visualisasi Cluster dengan PCA")
+Hasil Visualisasi: Lampirkan grafik cluster di sini.
+
+Interpretasi: Setiap titik mewakili pelanggan, sementara warna menunjukkan cluster yang ditentukan.
+
+8. Ringkasan Statistik untuk Setiap Cluster
+Ringkasan statistik memberikan informasi tentang karakteristik rata-rata dari setiap cluster.
+
+r
+Copy code
+# Ringkasan statistik untuk setiap cluster
 summary_per_cluster <- data %>%
-  group_by(Cluster_No_ID) %>%
+  group_by(Cluster) %>%
   summarise(across(where(is.numeric), mean, na.rm = TRUE))
-
 print(summary_per_cluster)
+Hasil Ringkasan Statistik: Lampirkan tabel ringkasan di sini.
 
-# 10. Jumlah anggota dalam setiap cluster
-table(data$Cluster_No_ID)
+9. Distribusi Pembelian Toko dan Web per Cluster
+Untuk memahami perbedaan pola pembelian, analisis distribusi pembelian di toko dan web dilakukan.
 
-
-#------Visualisasi-----
-
-library(tidyr)
-library(ggplot2)
-
-# Pilih kolom terkait produk dan Cluster
-products <- c("MntWines", "MntFruits", "MntMeatProducts", "MntFishProducts", 
-              "MntSweetProducts", "Cluster_No_ID")
-data_products <- data[, products]
-
-# Hitung total produk per cluster
-cluster_totals <- data_products %>%
-  group_by(Cluster_No_ID) %>%
-  summarise(across(everything(), sum, na.rm = TRUE))
-
-# Transformasi data ke format long untuk visualisasi
-cluster_long <- cluster_totals %>%
-  pivot_longer(
-    cols = -Cluster_No_ID,
-    names_to = "Product",
-    values_to = "Total"
-  ) %>%
-  group_by(Product) %>%
-  mutate(Percentage = Total / sum(Total) * 100) %>%
-  ungroup()
-
-# Buat pie chart untuk setiap produk
-ggplot(cluster_long, aes(x = "", y = Percentage, fill = as.factor(Cluster_No_ID))) +
-  geom_bar(stat = "identity", width = 1) +
-  coord_polar("y", start = 0) +
-  facet_wrap(~Product) +
-  geom_text(
-    aes(label = paste0(round(Percentage, 1), "%")),
-    position = position_stack(vjust = 0.5),
-    size = 3
-  ) +
-  labs(
-    title = "Distribusi Persentase Produk di Tiap Cluster",
-    fill = "Cluster",
-    x = NULL,
-    y = NULL
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    panel.grid = element_blank(),
-    strip.text = element_text(size = 12, face = "bold")
-  )
-
-#------Visualisasi-----
-
-library(tidyr)
-library(ggplot2)
-library(dplyr)
-
-# Hitung jumlah total NumStore dan NumWeb per cluster
+r
+Copy code
+# Hitung total dan persentase pembelian di toko dan web per cluster
 percentages <- data %>%
-  group_by(Cluster_No_ID) %>%
+  group_by(Cluster) %>%
   summarise(
     Total_NumStorePurchases = sum(NumStorePurchases, na.rm = TRUE),
     Total_NumWebPurchases = sum(NumWebPurchases, na.rm = TRUE)
   ) %>%
   mutate(
-    Percent_NumStorePurchases = Total_NumStorePurchases / (Total_NumStorePurchases + Total_NumWebPurchases) * 100,
-    Percent_NumWebPurchases = Total_NumWebPurchases / (Total_NumStorePurchases + Total_NumWebPurchases) * 100
-  ) %>%
-  select(Cluster_No_ID, Percent_NumStorePurchases, Percent_NumWebPurchases)
-
-# Transformasi ke long format untuk visualisasi
-percentages_long <- percentages %>%
-  pivot_longer(
-    cols = starts_with("Percent"),
-    names_to = "Category",
-    values_to = "Percentage"
-  ) %>%
-  mutate(Category = recode(Category, 
-                           "Percent_NumStorePurchases" = "NumStorePurchases",
-                           "Percent_NumWebPurchases" = "NumWebPurchases"),
-         Label = paste0(round(Percentage, 1), "%")  # Buat kolom Label
+    Percent_NumStorePurchases = Total_NumStorePurchases / (Total_NumStorePurchases + Total_NumWebPurchases),
+    Percent_NumWebPurchases = Total_NumWebPurchases / (Total_NumStorePurchases + Total_NumWebPurchases)
   )
+print(percentages)
+Hasil Visualisasi: Lampirkan grafik batang atau pie chart.
 
-#Hitung posisi label untuk menampilkan angka
-ggplot(percentages_long, aes(x = "", y = Percentage, fill = Category)) +
-  geom_bar(stat = "identity", width = 1) +
-  coord_polar("y", start = 0) +
-  geom_text(
-    aes(label = Label),
-    position = position_stack(vjust = 0.5),  # Letakkan label di tengah segmen
-    size = 4, color = "white"
-  ) +
-  facet_wrap(~Cluster_No_ID) +
-  labs(
-    title = "Distribusi Persentase NumStore dan NumWeb per Cluster",
-    fill = "Kategori",
-    x = NULL,
-    y = NULL
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    panel.grid = element_blank(),
-    strip.text = element_text(size = 12, face = "bold")
-  )
+Interpretasi: Setiap cluster memiliki proporsi pembelian toko dan web yang berbeda, yang mencerminkan preferensi pelanggan.
 
-# Pilih kolom terkait produk dan Cluster
-products <- c("MntWines", "MntFruits", "MntMeatProducts", "MntFishProducts", 
-              "MntSweetProducts", "MntGoldProds", "Cluster_No_ID")
-data_products <- data[, products]
+10. Kesimpulan
+Dari analisis ini, diperoleh wawasan berikut:
 
-# Hitung total produk per cluster
-cluster_totals <- data_products %>%
-  group_by(Cluster_No_ID) %>%
-  summarise(across(everything(), sum, na.rm = TRUE))
-
-# Transformasi data ke format long untuk visualisasi
-cluster_long <- cluster_totals %>%
-  pivot_longer(
-    cols = -Cluster_No_ID,
-    names_to = "Product",
-    values_to = "Total"
-  ) %>%
-  group_by(Cluster_No_ID) %>%
-  mutate(Percentage = Total / sum(Total) * 100) %>%
-  ungroup()
-
-# Buat pie chart untuk setiap cluster
-ggplot(cluster_long, aes(x = "", y = Percentage, fill = Product)) +
-  geom_bar(stat = "identity", width = 1) +
-  coord_polar("y", start = 0) +
-  facet_wrap(~Cluster_No_ID) +
-  geom_text(
-    aes(label = paste0(round(Percentage, 1), "%")),
-    position = position_stack(vjust = 0.5),
-    size = 3
-  ) +
-  labs(
-    title = "Distribusi Produk per Cluster",
-    fill = "Produk",
-    x = NULL,
-    y = NULL
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    panel.grid = element_blank(),
-    strip.text = element_text(size = 12, face = "bold")
-  )
+Dataset pelanggan berhasil dikelompokkan menjadi beberapa cluster dengan karakteristik yang berbeda.
+Cluster menunjukkan pola pembelian yang unik, seperti preferensi untuk belanja di toko dibandingkan online, atau tingkat pengeluaran yang berbeda.
+Informasi ini dapat digunakan untuk:
+Menyesuaikan strategi pemasaran (misalnya, promosi khusus untuk pelanggan yang lebih suka belanja online).
+Memberikan layanan personalisasi untuk meningkatkan loyalitas pelanggan.
