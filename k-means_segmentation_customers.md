@@ -74,7 +74,7 @@ fviz_cluster(kmeans_result, data = data_scaled, geom = "point", ellipse.type = "
   labs(title = "Visualisasi Cluster dengan PCA")
 ```
 Hasil Visualisasi: Lampirkan grafik cluster di sini.
-![alt text]()
+![alt text](https://github.com/zzzahwi/k-means_segmentation_customer/blob/main/visualisasi/clustering_k-means_newest.png?raw=true)
 Setiap titik mewakili pelanggan, sementara warna menunjukkan cluster yang ditentukan.
 ________________________________________
 ## **7. Ringkasan Statistik untuk Setiap Cluster**
@@ -87,7 +87,7 @@ summary_per_cluster <- data %>%
 print(summary_per_cluster)
 ```
 Hasil Ringkasan Statistik: Lampirkan tabel ringkasan di sini.
-![alt text]()
+![alt text](https://github.com/zzzahwi/k-means_segmentation_customer/blob/main/visualisasi/Screenshot%202024-12-30%20235237.png?raw=true)
 ________________________________________
 ## **8. Distribusi Pembelian Toko dan Web per Cluster**
 Untuk memahami perbedaan pola pembelian, analisis distribusi pembelian di toko dan web dilakukan.
